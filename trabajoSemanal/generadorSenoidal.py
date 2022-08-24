@@ -39,7 +39,6 @@ tt,xx = funcionSeno( vmax=1, dc=0, ff=1, ph=0, nn=N, fs=fs)
 
     
 plt.figure(1)
-#line_hdls = plt.plot(tt, xx)
 plt.plot(tt, xx)
 plt.title('Señal: Senoidal')
 plt.xlabel('Tiempo [segundos]')
