@@ -57,22 +57,40 @@ import scipy.signal as sig
 def funcionSeno (vmax, dc, ff, ph, nn, fs):
     
     # Grilla de sampleo temporal
-    tt = np.arange(0.0, nn/fs, 1/fs)
+    #tt = np.arange(0.0, nn/fs, 1/fs)
+    tt = np.linspace(0, (nn-1)*(1/fs), nn)
     # Calculo de los valores punto a punto de la funcion
     xx = vmax * np.sin(tt*2*np.pi*ff + ph) + dc
     
-    return tt,xx
-    
+    #return tt,xx
+    return xx
 
-def cuantizador (B, Vf, xxADC):
+# def cuantizador (B, Vf, xxADC):
     
-    q = (Vf*2) / ((2**B)-1)
+#     q = (Vf*2) / ((2**B)-1)
     
-    xxADCq = q * np.round(xxADC/q)
+#     xxADCq = q * np.round(xxADC/q)
    
-    error = xxADC - xxADCq
+#     error = xxADC - xxADCq
   
-    return xxADCq, error
+#     return xxADCq, error
+
+def funcionDFT(xx):
+    N=len(xx)
+       
+    n=np.arange(N)
+    
+    #casteo a complejo
+    X=np.zeros(N)*(1j)
+    
+    for k in range (N):
+            
+        twiddle = np.exp(-2j*np.pi*k*n/N)      
+        
+        X[k] = np.dot(twiddle,xx)
+        
+    return X
+
 
 #%%  Script de referencia para generación de gráficos
 # Datos generales de la simulación
@@ -101,25 +119,42 @@ df = fs/N # resolución espectral
 #%% Acá arranca la simulación
  
 # ....
-tt,analog_sig = funcionSeno( vmax=1, dc=0, ff=10, ph=0, nn=N, fs=fs)
 
-tt_os = np.arange(0.0, N_os/fs, 1/fs)
+#Grillas temporales
 
-n=np.arange(N)
-ff = n/T
+tt = np.linspace(0, (N-1)*ts, N)
+tt_os = np.linspace(0, (N-1)*ts, N_os)
 
-#Se agrega ruido uniforme a la señal senoidal
-#ruido = np.random.uniform(0,(np.sqrt(48)),1000)
-sr = analog_sig + np.random.uniform(0,pot_ruido,1000)
+#Grillas frecuenciales
+ff = np.linspace(0, (N-1)*df, N)
+ff_os = np.linspace(0, (N-1)*df, N_os)
 
+analog_sig = funcionSeno( vmax=1, dc=0, ff=1, ph=0, nn=N_os, fs=fs)
+
+nn = np.random.normal(0, np.sqrt(pot_ruido), size=N_os)
+
+#in ADC
+sr = analog_sig + nn
+
+#Muestreo la señal analógica 1 cada OS muestras
+sr = sr[::over_sampling]
+
+#out ADC cuantizo la señal muestreada
 srq = q * np.round(sr/q)
 
-#Media
-#np.mean()
-#Varianza
-#np.var()
+# ruido de cuantización
+nq = srq - sr
 
- 
+#Transformadas de Fourier
+ft_Srq = funcionDFT(srq)
+ft_As = funcionDFT(analog_sig)
+ft_SR = funcionDFT(sr)
+ft_Nn = funcionDFT(nn)
+ft_Nq = funcionDFT(nq)
+
+Nnq_mean = np.mean(nq)
+nNn_mean = np.mean(nn)
+
 #######################################################################################################################
 #%% Presentación gráfica de los resultados
 plt.close('all')
@@ -140,6 +175,7 @@ plt.show()
 plt.figure(2)
 bfrec = ff <= fs/2
  
+nNn_mean = np.mean(np.abs(ft_Nn)**2)
 Nnq_mean = np.mean(np.abs(ft_Nq)**2)
  
 plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_Srq[bfrec])**2), lw=2, label='$ s_Q = Q_{B,V_F}\{s_R\} $ (ADC out)' )
