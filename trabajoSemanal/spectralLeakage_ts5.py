@@ -53,7 +53,7 @@ ff = np.linspace(0, (N-1)*(df), (zero_padding+1)*N) #zero_padding veces N + N de
 
 bfrec = ff <= fs/2
 
-amp = np.sqrt(2)
+amp = np.sqrt(2*(zero_padding+1))
 
 analog_sig0 = funcionSeno( vmax=amp, dc=0, ff=f0, ph=0, nn=N, fs=fs)
 analog_sig1 = funcionSeno( vmax=amp, dc=0, ff=f1, ph=0, nn=N, fs=fs)
@@ -107,5 +107,6 @@ axes_hdl.legend()
 #plt.ylabel('Densidad de Potencia [veces]')
 plt.ylabel('Densidad de Potencia [dB]')
 plt.xlabel('Frecuencia [Hz]')
+plt.xlim([120,130])
 plt.show()
  
