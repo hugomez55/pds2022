@@ -18,13 +18,23 @@ plt.close('all')
 fs=1000
 N = 1000
 df = fs/N # resolución espectral
-ff = np.linspace(0, (N-1)*df, N)
+zero_padding = 10
+#ff = np.linspace(0, (N-1)*df, N)
+ff = np.linspace(0, (N-1)*(df), (zero_padding+1)*N) #zero_padding veces N + N de la señal
 
 # Cálculo de ventanas
-winBartlett = np.bartlett(N)
-winHann = np.hanning(N)
-winBlackman = np.blackman(N)
+# winBartlett = np.bartlett(N)
+winBartlett = scipy.signal.windows.bartlett(N)
+winHann = scipy.signal.windows.hann(N)
+winBlackman = scipy.signal.windows.blackman(N)
 winFlatTop = scipy.signal.windows.flattop(N)
+
+#Aplicamos el zero padding
+winBartlett = np.append(winBartlett, np.zeros(zero_padding*N))
+winHann = np.append(winHann, np.zeros(zero_padding*N))
+winBlackman = np.append(winBlackman, np.zeros(zero_padding*N))
+winFlatTop = np.append(winFlatTop, np.zeros(zero_padding*N))
+
 
 #Transformada de Fourier de las ventanas
 ft_winBartlett = np.fft.fft(winBartlett) / winBartlett.shape[0]
@@ -41,18 +51,23 @@ plt.plot(winHann, 'green',label='Hann')
 plt.plot(winBlackman, 'blue',label='Blackman')
 plt.plot(winFlatTop, 'black',label='Flat-Top')
 plt.grid()
+plt.xlim([0,1000])
 axes_hdl = plt.gca()
 axes_hdl.legend()
 
 # Visualización de la respuesta en frecuencia
 plt.figure(2)
-plt.plot(ff[bfrec], 10* np.log10(2*np.abs(ft_winBartlett[bfrec])**2), 'red',label='Bartlett')
-plt.plot(ff[bfrec], 10* np.log10(2*np.abs(ft_winHann[bfrec])**2), 'green',label='Hann')
-plt.plot(ff[bfrec], 10* np.log10(2*np.abs(ft_winBlackman[bfrec])**2), 'blue',label='Blackman')
-plt.plot(ff[bfrec], 10* np.log10(2*np.abs(ft_winFlatTop[bfrec])**2), 'black',label='Flat-Top')
+plt.plot(ff[bfrec], 20* np.log10(np.abs(ft_winBartlett[bfrec])/np.abs(ft_winBartlett[0])), 'red',label='Bartlett')
+plt.plot(ff[bfrec], 20* np.log10(np.abs(ft_winHann[bfrec])/np.abs(ft_winHann[0])), 'green',label='Hann')
+plt.plot(ff[bfrec], 20* np.log10(np.abs(ft_winBlackman[bfrec])/np.abs(ft_winBlackman[0])), 'blue',label='Blackman')
+plt.plot(ff[bfrec], 20* np.log10(np.abs(ft_winFlatTop[bfrec])/np.abs(ft_winFlatTop[0])), 'black',label='Flat-Top')
+
+
+
+
 plt.grid()
 plt.xlim([0,10])
-plt.ylim([-400,10])
+plt.ylim([-300,10])
 axes_hdl = plt.gca()
 axes_hdl.legend()
 plt.show()
