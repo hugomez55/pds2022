@@ -42,7 +42,8 @@ signalECG = ecg_one_lead[0:100000]
 # signalECG -= np.mean(signalECG)
 
 # Espectro de la ECG en reposo
-[f, Pxx_reposo] = sig.welch(signalECG, fs=fs, nperseg=bloque, average='median', axis=0)
+#[f, Pxx_reposo] = sig.welch(signalECG, fs=fs, nperseg=bloque, average='median', axis=0)
+[f, Pxx_reposo] = sig.welch(signalECG, fs=fs, nperseg=bloque, axis=0)
 # plt.figure(1)
 # plt.plot(f, 10*np.log10(2*np.abs(Pxx_den)))
 
@@ -52,12 +53,13 @@ Wcorte_reposo = f[index_energia[0]]
 
 # En ejercicio
 signalECG = ecg_one_lead[450000:550000]
-[f, Pxx_ejercicio] = sig.welch(signalECG, fs=fs, nperseg=bloque, average='median', axis=0)
+#[f, Pxx_ejercicio] = sig.welch(signalECG, fs=fs, nperseg=bloque, average='median', axis=0)
+[f, Pxx_ejercicio] = sig.welch(signalECG, fs=fs, nperseg=bloque, axis=0)
 
 # Esfuerzo
 signalECG = ecg_one_lead[750000:850000]
-[f, Pxx_esfuerzo] = sig.welch(signalECG, fs=fs, nperseg=bloque, average='median', axis=0)
-
+#[f, Pxx_esfuerzo] = sig.welch(signalECG, fs=fs, nperseg=bloque, average='median', axis=0)
+[f, Pxx_esfuerzo] = sig.welch(signalECG, fs=fs, nperseg=bloque, axis=0)
 
 plt.figure(1)
 # Decibeles - Ancho de banda del ruido
@@ -73,6 +75,49 @@ plt.plot(f, (Pxx_ejercicio), label='Ejercicio')
 plt.plot(f, (Pxx_esfuerzo), label='Esfuerzo')
 plt.legend()
 plt.grid()
+
+# Análisis de latidos de ancho fijo
+# Lugares en el tiempo donde detecta los latidos
+qrs_detections = mat_struct['qrs_detections']
+inf = 250
+sup = 350
+latido = (ecg_one_lead[int(qrs_detections[0] - inf):int(qrs_detection[0] + sup)])
+
+muestras = np.arange(len(qrs_detections))
+i = 0
+latidos = np.zeros([sup+inf, qrs_detections.shape[0]])
+
+#for nn in muestras
+#    latidos[:,nn] = (ecg_one_lead[int(qrs_detections[nn] - inf):int(qrs_detection[nn] + sup)])
+#    latidos[:,nn] -= np.mean(latidos[:,nn])
+
+estimadorAmplitud = latidos [242, :]
+
+filtroNormal = estimadorAmplitud < 11500
+
+#indexVentricular = np.where(estimadorAmplitud > 11500)[0]
+#ventricular = latidos[:,indexVentricular]
+
+ventricular = latidos[:,np.bitwise_not(filtroNormal)]
+normal = latidos[:,filtroNormal]
+
+plt.plot(ventricular, 'b', label = 'Ventricular')
+plt.plot(normal, 'g', label = 'Normal')
+
+plt.plot(np.mean(ventricular, axis=1), 'b', label = 'Ventricular')
+plt.plot(np.mean(normal, axis=1), 'g', label = 'Normal')
+
+
+plt.figure(1)
+plt.plot(latido)
+plt.grid()
+
+
+plt.figure(2)
+plt.hist(estimadorAmplitud)
+
+
+
 
 
 
