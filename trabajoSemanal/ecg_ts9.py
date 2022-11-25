@@ -81,7 +81,7 @@ plt.grid()
 qrs_detections = mat_struct['qrs_detections']
 inf = 250
 sup = 350
-latido = (ecg_one_lead[int(qrs_detections[0] - inf):int(qrs_detection[0] + sup)])
+latido = (ecg_one_lead[int(qrs_detections[0] - inf):int(qrs_detections[0] + sup)])
 
 muestras = np.arange(len(qrs_detections))
 i = 0
